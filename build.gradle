@@ -1,0 +1,49 @@
+plugins {
+    id 'org.springframework.boot' version '2.6.4'
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+    id 'com.google.cloud.tools.jib' version '3.2.0'
+    id 'java'
+}
+
+group = 'com.example'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '11'
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+jib {
+    from {
+        image = 'amazoncorretto:11.0.13'
+    }
+    to {
+        image = project.findProperty('aws.accountid') + ".dkr.ecr." + project.findProperty('aws.region') + ".amazonaws.com/snowlife-api-repository"
+        credHelper = 'ecr-login'
+    }
+    container {
+        jvmFlags = ['-Xms512m', '-Xms1g', '-Xmx1g', '-Xss10m', '-XX:MaxMetaspaceSize=1g']
+        mainClass = 'com.soudegesu.example.MainApplication'
+        args = []
+        ports = ['8080']
+        format = 'OCI'
+    }
+}
+
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
